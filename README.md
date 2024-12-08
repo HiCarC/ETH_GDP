@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This project introduces a novel approach to valuing blockchain networks, specifically Ethereum, by treating them as emerging digital economies rather than traditional corporations. Traditional valuation methods often mischaracterize blockchain networks by applying corporate metrics to what are essentially sovereign, digital economies with their own reserve currencies.
+With project I want to introduce a novel approach to valuing blockchain networks, specifically Ethereum, by treating them as emerging digital economies rather than traditional corporations. Indeed, traditional valuation methods often mischaracterize blockchain networks by applying corporate metrics to what are essentially sovereign, digital economies with their own reserve currencies.
 
 ### Why a New Valuation Framework?
 
@@ -73,9 +73,99 @@ The Gross Decentralized Product (GDP) framework captures six key components:
 - DeFiLlama API for TVL and protocol metrics
 - OpenSea API for NFT valuations
 
+### Author 
+Developed with ❤️ by Carles Cerqueda
+
 ## Installation
 
-[Installation instructions...]
+### Prerequisites
+
+- Python 3.9 or higher
+- Node.js (for Vercel deployment)
+- Git
+
+### Local Development Setup
+
+1. Clone the repository:
+```bash
+git clone https://github.com/HiCarC/ETH_GDP.git
+cd ETH_GDP
+```
+
+2. Create and activate a virtual environment:
+```bash
+# On Windows
+python -m venv venv
+venv\Scripts\activate
+
+# On macOS/Linux
+python -m venv venv
+source venv/bin/activate
+```
+
+3. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+4. Set up environment variables:
+```bash
+# Create .env file
+cp .env.example .env
+
+# Edit .env with your API keys:
+# COINGECKO_API_KEY=your_key_here
+# OPENSEA_API_KEY=your_key_here
+```
+
+5. Run the development server:
+```bash
+python run.py
+```
+
+The application will be available at `http://localhost:8000`
+
+### Production Deployment
+
+#### Deploy to Vercel
+
+1. Install Vercel CLI:
+```bash
+npm install -g vercel
+```
+
+2. Deploy:
+```bash
+vercel
+```
+
+3. Configure environment variables:
+```bash
+vercel env add COINGECKO_API_KEY
+vercel env add OPENSEA_API_KEY
+```
+
+4. Deploy to production:
+```bash
+vercel --prod
+```
+
+### Updating the Application
+
+To update your deployment:
+```bash
+git add .
+git commit -m "your update message"
+git push origin main
+```
+
+Vercel will automatically deploy updates when you push to main.
+
+### Troubleshooting
+
+- If you encounter API rate limits, verify your API keys in .env
+- For deployment issues, check Vercel logs: `vercel logs`
+- For local development issues, check Flask debug output
 
 ## API Configuration
 
@@ -85,14 +175,6 @@ The Gross Decentralized Product (GDP) framework captures six key components:
 
 Contributions are welcome! This project aims to advance the understanding of blockchain economies through better metrics and visualizations.
 
-## Academic Background
-
-This project is developed in collaboration with the Cambridge Centre for Alternative Finance (CCAF), contributing to the academic research on blockchain economic metrics.
-
 ## Author
 
 Developed with ❤️ by Carles Cerqueda
-
-## License
-
-MIT License
