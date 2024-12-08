@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="space-y-8">
+    <!-- Main GDP Display -->
+    <div class="bg-gray-800 rounded-lg p-6 shadow-lg">
+        <h1 class="text-3xl font-bold gradient-text mb-6 text-center">
+            Total Ethereum Gross Decentralised Product
+        </h1>
+        <div class="flex flex-col items-center">
+            <div class="text-center mb-6">
+                <h2 class="text-2xl font-semibold mb-2">Total Ethereum GDP</h2>
+                <p id="gdp-value" class="text-6xl font-bold text-eth-blue">Loading...</p>
+                <p id="gdp-change" class="text-sm text-gray-400 mt-2">24h Change: --</p>
+            </div>
+            <div class="w-full max-w-2xl">
+                <div class="relative {% if not config.get('ENABLE_TIMELINE', False) %}h-0{% else %}h-40{% endif %}">
+                    <canvas id="gdp-chart" class="w-full h-40"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- GDP Components Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Monetary Base -->
+        <div class="bg-gray-800 rounded-lg p-6 shadow-lg">
+            <h3 class="text-xl font-semibold mb-4">Monetary Base</h3>
+            <div class="space-y-2">
+                <p id="monetary_base" class="text-2xl font-bold text-eth-blue">Loading...</p>
+                <p id="monetary-base-volume" class="text-sm text-gray-400">24h Volume: <span id="eth_volume">--</span></p>
+                <p class="text-sm">24h Change: <span id="eth_change" class="text-gray-400">--</span></p>
+            </div>
+        </div>
+
+        <!-- DeFi TVL -->
+        <div class="bg-gray-800 rounded-lg p-6 shadow-lg">
+            <h3 class="text-xl font-semibold mb-4">DeFi TVL</h3>
+            <div class="space-y-2">
+                <p id="tvl" class="text-2xl font-bold text-eth-blue">Loading...</p>
+                <p id="tvl-change" class="text-sm">24h Change: --</p>
+            </div>
+        </div>
+
+        <!-- Stablecoins -->
+        <div class="bg-gray-800 rounded-lg p-6 shadow-lg">
+            <h3 class="text-xl font-semibold mb-4">Stablecoins</h3>
+            <div class="space-y-2">
+                <p id="stablecoins" class="text-2xl font-bold text-eth-blue">Loading...</p>
+                <p id="stablecoins-change" class="text-sm text-gray-400">24h Change: --</p>
+            </div>
+        </div>
+
+        <!-- Protocol Market Caps -->
+        <div class="bg-gray-800 rounded-lg p-6 shadow-lg">
+            <h3 class="text-xl font-semibold mb-4">Protocol Market Caps</h3>
+            <div class="space-y-2">
+                <p id="protocols" class="text-2xl font-bold text-eth-blue">Loading...</p>
+                <p id="protocols-change" class="text-sm text-gray-400">24h Change: --</p>
+            </div>
+        </div>
+
+        <!-- Protocol Revenue -->
+        <div class="bg-gray-800 rounded-lg p-6 shadow-lg">
+            <h3 class="text-xl font-semibold mb-4">Protocol Revenue</h3>
+            <div class="space-y-2">
+                <p id="fees" class="text-2xl font-bold text-eth-blue">Loading...</p>
+                <p id="revenue-change" class="text-sm">24h Change: --</p>
+            </div>
+        </div>
+
+        <!-- Cultural Capital -->
+        <div class="bg-gray-800 rounded-lg p-6 shadow-lg">
+            <h3 class="text-xl font-semibold mb-4">Cultural Capital</h3>
+            <div class="space-y-2">
+                <p id="cultural" class="text-2xl font-bold text-eth-blue">Loading...</p>
+                <p id="cultural-change" class="text-sm text-gray-400">24h Change: --</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- GDP Components Breakdown -->
+    <div class="mt-8">
+        <h2 class="text-xl font-semibold mb-4 text-white">GDP Components Breakdown</h2>
+        <div class="bg-gray-900 rounded-lg p-6" style="height: 400px;">
+            <canvas id="gdp-pie-chart"></canvas>
+        </div>
+    </div>
+
+    {% if config.get('ENABLE_TIMELINE', False) %}
+    <!-- GDP Evolution (Timeline) -->
+    <div class="mt-8">
+        <h2 class="text-xl font-semibold mb-4 text-white">GDP Evolution</h2>
+        <div class="bg-gray-900 rounded-lg p-6" style="height: 400px;">
+            <canvas id="gdp-timeline-chart"></canvas>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %} 

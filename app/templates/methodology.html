@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block content %}
+<script src="{{ url_for('static', filename='js/methodology.js') }}"></script>
+
+<div class="max-w-4xl mx-auto px-4 py-8">
+    <!-- Header -->
+    <h1 id="top" class="text-4xl font-bold text-white mb-8 gradient-text">
+        Ethereum Gross Decentralised Product (GDP) Methodology
+    </h1>
+
+    <!-- Project Overview -->
+    <section id="overview" class="bg-gray-800 rounded-lg p-6 mb-8 shadow-lg">
+        <h2 class="text-2xl font-semibold text-white mb-4">Project Overview</h2>
+        <p class="text-gray-300 leading-relaxed">
+            The ETH GDP Calculator aims to measure Ethereum's economic activity through a comprehensive framework inspired by traditional GDP calculations but adapted for decentralized economies. Unlike traditional companies, blockchain networks like Ethereum represent emerging digital economies with their own monetary systems, financial infrastructure, and cultural outputs.
+        </p>
+    </section>
+
+    <!-- Formula Comparison -->
+    <div id="formulas" class="grid md:grid-cols-2 gap-6 mb-8">
+        <!-- Decentralized GDP -->
+        <div class="bg-gray-800 rounded-lg p-6 shadow-lg">
+            <h3 class="text-xl font-semibold text-white mb-4">Decentralised GDP</h3>
+            <div class="font-mono text-eth-blue mb-4">GDPdecentralised = M + K + F + S + P + C</div>
+            <ul class="space-y-2 text-gray-300">
+                <li><span class="font-semibold text-eth-blue">M:</span> Monetary Base</li>
+                <li><span class="font-semibold text-eth-blue">K:</span> Capital Stock (TVL)</li>
+                <li><span class="font-semibold text-eth-blue">F:</span> Fee Revenue</li>
+                <li><span class="font-semibold text-eth-blue">S:</span> Stablecoins</li>
+                <li><span class="font-semibold text-eth-blue">P:</span> Protocol Value</li>
+                <li><span class="font-semibold text-eth-blue">C:</span> Cultural Capital</li>
+            </ul>
+        </div>
+
+        <!-- Traditional GDP -->
+        <div class="bg-gray-800 rounded-lg p-6 shadow-lg">
+            <h3 class="text-xl font-semibold text-white mb-4">Traditional GDP</h3>
+            <div class="font-mono text-eth-blue mb-4">GDPtraditional = C + I + G + NX</div>
+            <ul class="space-y-2 text-gray-300">
+                <li><span class="font-semibold text-eth-blue">C:</span> Consumption</li>
+                <li><span class="font-semibold text-eth-blue">I:</span> Investment</li>
+                <li><span class="font-semibold text-eth-blue">G:</span> Government Spending</li>
+                <li><span class="font-semibold text-eth-blue">NX:</span> Net Exports</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Components Details -->
+    <div id="components" class="space-y-6 mb-8">
+        {% for component in components %}
+        <div class="bg-gray-800 rounded-lg p-6 shadow-lg component-card hover:bg-gray-750 transition-colors duration-200">
+            <div class="flex items-start justify-between">
+                <div>
+                    <h3 class="text-xl font-semibold text-white mb-2">{{ component.title }}</h3>
+                    <p class="text-gray-300 mb-4">{{ component.description }}</p>
+                </div>
+                <div class="text-eth-blue text-4xl font-bold">{{ component.symbol }}</div>
+            </div>
+            <div class="grid md:grid-cols-3 gap-4 text-sm">
+                <div>
+                    <div class="text-gray-400">Calculation</div>
+                    <div class="text-white">{{ component.calculation }}</div>
+                </div>
+                <div>
+                    <div class="text-gray-400">Data Source</div>
+                    <div class="text-white">{{ component.source }}</div>
+                </div>
+                <div>
+                    <div class="text-gray-400">Rationale</div>
+                    <div class="text-white">{{ component.rationale }}</div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Why This Matters -->
+    <section id="why-matters" class="bg-gray-800 rounded-lg p-6 mb-8 shadow-lg">
+        <h2 class="text-2xl font-semibold text-white mb-4">Why This Matters</h2>
+        <div class="prose prose-invert max-w-none">
+            <p>Traditional valuation methods often mischaracterize blockchain networks by treating them as corporations. Our approach recognizes Ethereum as an emerging digital economy with its own:</p>
+            <ul>
+                <li>Monetary system and policy</li>
+                <li>Financial infrastructure</li>
+                <li>Cultural outputs</li>
+                <li>Economic activity metrics</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- Growth Potential -->
+    <section id="projections" class="bg-gray-800 rounded-lg p-6 shadow-lg">
+        <h2 class="text-2xl font-semibold text-white mb-4">Growth Potential</h2>
+        <div class="grid md:grid-cols-2 gap-6">
+            <div class="space-y-4">
+                <div class="text-gray-300">
+                    <div class="text-lg font-semibold mb-2">Current Economic Aggregate</div>
+                    <div class="text-3xl font-bold text-eth-blue">$300B</div>
+                    <div class="text-sm text-gray-400">Comparable to China 1986</div>
+                </div>
+                <div class="text-gray-300">
+                    <div class="text-lg font-semibold mb-2">Potential 2054 Value</div>
+                    <div class="text-3xl font-bold text-eth-blue">$18T</div>
+                    <div class="text-sm text-gray-400">Based on similar growth rate</div>
+                </div>
+            </div>
+            <div class="space-y-4">
+                <div class="text-gray-300">
+                    <div class="text-lg font-semibold mb-2">Key Growth Drivers</div>
+                    <ul class="list-disc list-inside text-gray-300">
+                        <li>DeFi expansion</li>
+                        <li>AI integration</li>
+                        <li>Global adoption</li>
+                        <li>Institutional participation</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %} 
