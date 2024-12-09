@@ -5,6 +5,8 @@ const CONFIG = {
 
 // Chart configuration
 let gdpChart = null;
+let stablecoinsDistributionChart = null;
+let testChart = null;
 
 function initializeChart() {
     const ctx = document.getElementById('gdp-chart').getContext('2d');
@@ -152,6 +154,28 @@ function updateGDP() {
                 
                 gdpPieChart.update();
             }
+
+            // Update stablecoins distribution chart
+            if (stablecoinsDistributionChart && data.metadata.stablecoins_distribution) {
+                console.log('Updating stablecoins distribution with:', data.metadata.stablecoins_distribution);
+                const dist = data.metadata.stablecoins_distribution;
+                stablecoinsDistributionChart.data.datasets[0].data = [
+                    dist.USDT,
+                    dist.USDC,
+                    dist.DAI,
+                    dist.Others
+                ];
+                stablecoinsDistributionChart.update();
+                if (document.getElementById('stablecoins-debug')) {
+                    document.getElementById('stablecoins-debug').textContent = 
+                        `Updated with: USDT=${formatNumber(dist.USDT)}, USDC=${formatNumber(dist.USDC)}, DAI=${formatNumber(dist.DAI)}, Others=${formatNumber(dist.Others)}`;
+                }
+            } else {
+                console.log('Could not update stablecoins distribution:', {
+                    chartExists: !!stablecoinsDistributionChart,
+                    distributionData: data.metadata.stablecoins_distribution
+                });
+            }
         })
         .catch(error => {
             console.error('Error:', error);
@@ -296,10 +320,100 @@ function initializePieChart() {
     });
 }
 
+function initializeStablecoinsChart() {
+    console.log('Initializing stablecoins chart...');
+    const canvas = document.getElementById('stablecoins-distribution-chart');
+    const debugInfo = document.getElementById('stablecoins-debug');
+    
+    if (!canvas) {
+        console.error('Stablecoins canvas element not found');
+        if (debugInfo) debugInfo.textContent = 'Error: Canvas element not found';
+        return;
+    }
+
+    try {
+        stablecoinsDistributionChart = new Chart(canvas, {
+            type: 'doughnut',
+            data: {
+                labels: ['USDT', 'USDC', 'DAI', 'Others'],
+                datasets: [{
+                    data: [40, 30, 20, 10],
+                    backgroundColor: ['#26A17B', '#2775CA', '#F5AC37', '#8C8C8C']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'right',
+                        labels: {
+                            color: '#fff',
+                            font: {
+                                size: 10
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        if (debugInfo) debugInfo.textContent = 'Stablecoins chart initialized';
+    } catch (error) {
+        console.error('Error initializing stablecoins chart:', error);
+        if (debugInfo) debugInfo.textContent = `Error: ${error.message}`;
+    }
+}
+
+function initializeTestChart() {
+    console.log('Initializing test chart...');
+    const canvas = document.getElementById('test-chart');
+    const debugInfo = document.getElementById('test-debug');
+    
+    if (!canvas) {
+        console.error('Test canvas element not found');
+        if (debugInfo) debugInfo.textContent = 'Error: Canvas element not found';
+        return;
+    }
+
+    try {
+        testChart = new Chart(canvas, {
+            type: 'doughnut',
+            data: {
+                labels: ['Red', 'Blue', 'Yellow'],
+                datasets: [{
+                    data: [300, 200, 100],
+                    backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            color: '#fff'
+                        }
+                    }
+                }
+            }
+        });
+        
+        if (debugInfo) debugInfo.textContent = 'Test chart initialized';
+    } catch (error) {
+        console.error('Error initializing test chart:', error);
+        if (debugInfo) debugInfo.textContent = `Error: ${error.message}`;
+    }
+}
+
 // Initialize chart and start updates
 document.addEventListener('DOMContentLoaded', () => {
     initializeChart();
     initializePieChart();
+    initializeStablecoinsChart();
+    initializeTestChart();
     if (CONFIG.enableTimeline) {
         initializeTimelineChart();
     }

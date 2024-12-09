@@ -64,19 +64,42 @@ class DefiLlamaService:
             
             data = response.json()
             
-            # List of major Ethereum stablecoins to track
-            eth_stablecoins = ['USDT', 'USDC', 'DAI', 'FRAX', 'LUSD', 'USDD']
+            # Track individual amounts for distribution
+            distribution = {
+                'USDT': 0,
+                'USDC': 0,
+                'DAI': 0,
+                'Others': 0
+            }
             
-            eth_stables = sum(
-                float(asset['chainCirculating'].get('Ethereum', {}).get('current', {}).get('peggedUSD', 0))
-                for asset in data['peggedAssets']
-                if asset['symbol'] in eth_stablecoins
-            )
+            total_supply = 0
             
-            return eth_stables
+            for asset in data['peggedAssets']:
+                symbol = asset['symbol']
+                if 'Ethereum' in asset.get('chainCirculating', {}):
+                    amount = float(asset['chainCirculating']['Ethereum'].get('current', {}).get('peggedUSD', 0))
+                    total_supply += amount
+                    
+                    if symbol in ['USDT', 'USDC', 'DAI']:
+                        distribution[symbol] = amount
+                    else:
+                        distribution['Others'] += amount
+            
+            return {
+                'total': total_supply,
+                'distribution': distribution
+            }
         except Exception as e:
             print(f"Error fetching stablecoin supply: {e}")
-            return 0 
+            return {
+                'total': 0,
+                'distribution': {
+                    'USDT': 0,
+                    'USDC': 0,
+                    'DAI': 0,
+                    'Others': 0
+                }
+            }
 
     @staticmethod
     @cache.memoize(timeout=3600)
@@ -120,10 +143,29 @@ class DefiLlamaService:
             df['date'] = pd.to_datetime(df['date'], unit='s')
             df.set_index('date', inplace=True)
             
+            # Extract USDT supply from totalCirculating.peggedUSD
+            df['usdt_supply'] = df['totalCirculating'].apply(lambda x: x['peggedUSD'])
+            
             # Filter date range
             mask = (df.index >= start_date) & (df.index <= end_date)
-            return df.loc[mask]['totalCirculating']
+            return df.loc[mask]['usdt_supply']
             
         except Exception as e:
             print(f"Error fetching historical stablecoin data: {e}")
             return pd.Series()
+
+    @staticmethod
+    def get_usdt_supply():
+        try:
+            response = requests.get(
+                "https://stablecoins.llama.fi/stablecoin/USDT?chain=Ethereum"
+            )
+            if response.status_code != 200:
+                raise Exception(f"DeFiLlama API returned status code {response.status_code}")
+            
+            data = response.json()
+            return data['circulating']  # This will give you the current USDT supply on Ethereum
+            
+        except Exception as e:
+            print(f"Error fetching USDT supply: {e}")
+            return 0

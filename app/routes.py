@@ -48,7 +48,8 @@ def get_gdp():
         fees_change = fees_data['change_24h']
         
         # Stablecoins and Bridged Assets (S)
-        S = DefiLlamaService.get_stablecoin_supply()
+        stablecoins_data = DefiLlamaService.get_stablecoin_supply()
+        S = stablecoins_data['total']
         if not S:
             logger.warning("Stablecoin data returned 0")
         logger.info("Successfully fetched stablecoin data")
@@ -75,7 +76,8 @@ def get_gdp():
                 'eth_24h_change': eth_market_data['price_change_24h'],
                 'eth_24h_volume': eth_market_data['volume_24h'],
                 'tvl_24h_change': tvl_change,
-                'fees_24h_change': fees_change
+                'fees_24h_change': fees_change,
+                'stablecoins_distribution': stablecoins_data['distribution']
             }
         })
     except Exception as e:

@@ -44,10 +44,17 @@
 
         <!-- Stablecoins -->
         <div class="bg-gray-800 rounded-lg p-6 shadow-lg">
-            <h3 class="text-xl font-semibold mb-4">Stablecoins</h3>
-            <div class="space-y-2">
-                <p id="stablecoins" class="text-2xl font-bold text-eth-blue">Loading...</p>
-                <p id="stablecoins-change" class="text-sm text-gray-400">24h Change: --</p>
+            <div class="flex justify-between items-start">
+                <div>
+                    <h3 class="text-xl font-semibold mb-4">Stablecoins</h3>
+                    <div class="space-y-2">
+                        <p id="stablecoins" class="text-2xl font-bold text-eth-blue">Loading...</p>
+                        <p id="stablecoins-change" class="text-sm text-gray-400">24h Change: --</p>
+                    </div>
+                </div>
+                <div class="w-48 h-48">
+                    <canvas id="stablecoins-distribution-chart"></canvas>
+                </div>
             </div>
         </div>
 
