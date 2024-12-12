@@ -94,6 +94,24 @@
         </div>
     </div>
 
+    <!-- Enhanced Separator -->
+    <div class="mt-16 mb-12 relative">
+        <div class="absolute inset-0 flex items-center" aria-hidden="true">
+            <div class="w-full border-t border-gray-700"></div>
+        </div>
+        <div class="relative flex justify-center">
+            <div class="bg-gray-900 px-6 py-3 rounded-full border border-gray-700 shadow-lg">
+                <h2 class="text-2xl font-bold gradient-text flex items-center space-x-3">
+                    <svg class="w-6 h-6 text-eth-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                              d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+                    </svg>
+                    <span>DeFi Analytics</span>
+                </h2>
+            </div>
+        </div>
+    </div>
+
     {% if config.get('ENABLE_TIMELINE', False) %}
     <!-- GDP Evolution (Timeline) -->
     <div class="mt-8">
@@ -103,5 +121,28 @@
         </div>
     </div>
     {% endif %}
+
+    <!-- DeFi Protocols Section -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+        <!-- Top Protocols Card -->
+        <div class="bg-gray-800 rounded-lg p-6 shadow-lg">
+            <h3 class="text-xl font-semibold mb-4">Top 10 Ethereum Protocols by TVL</h3>
+            <div id="topProtocolsTable" class="overflow-x-auto"></div>
+        </div>
+
+        <!-- TVL by Category Card -->
+        <div class="bg-gray-800 rounded-lg p-6 shadow-lg">
+            <h3 class="text-xl font-semibold mb-4">Total Value Locked by Category</h3>
+            <div class="h-[400px] relative w-full">
+                <canvas id="categoryChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Yield Opportunities Card -->
+    <div class="bg-gray-800 rounded-lg p-6 shadow-lg mt-6">
+        <h3 class="text-xl font-semibold mb-4">Top 10 Yields</h3>
+        <div id="yieldsTable" class="overflow-x-auto"></div>
+    </div>
 </div>
 {% endblock %} 

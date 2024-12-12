@@ -53,6 +53,7 @@ def get_gdp():
         if not S:
             logger.warning("Stablecoin data returned 0")
         logger.info("Successfully fetched stablecoin data")
+        stablecoins_change = stablecoins_data['change_24h']
         
         # Protocol Market Caps (P)
         P = CoinGeckoService.get_protocol_market_caps()
@@ -62,8 +63,16 @@ def get_gdp():
         
         gdp = M + K + F + S + P
         
+        # Calculate 24h change
+        gdp_change = (
+            eth_market_data.get('price_change_percentage_24h', 0) * (M / gdp) +
+            tvl_change * (K / gdp) +
+            fees_change * (F / gdp)
+        )
+        
         return jsonify({
             'gdp': gdp,
+            'change_24h': gdp_change,
             'components': {
                 'monetary_base': M,
                 'tvl': K,
@@ -77,6 +86,7 @@ def get_gdp():
                 'eth_24h_volume': eth_market_data['volume_24h'],
                 'tvl_24h_change': tvl_change,
                 'fees_24h_change': fees_change,
+                'stablecoins_24h_change': stablecoins_change,
                 'stablecoins_distribution': stablecoins_data['distribution']
             }
         })
@@ -247,3 +257,18 @@ def get_historical_gdp(period):
     except Exception as e:
         logger.error(f"Error fetching historical GDP data: {str(e)}")
         return jsonify({'error': 'Failed to fetch historical data'}), 500 
+
+@main.route('/api/protocols')
+def get_protocols():
+    protocols = DefiLlamaService.get_top_protocols()
+    return jsonify(protocols)
+
+@main.route('/api/categories')
+def get_categories():
+    categories = DefiLlamaService.get_category_distribution()
+    return jsonify(categories)
+
+@main.route('/api/yields')
+def get_yields():
+    yields = DefiLlamaService.get_top_yields()
+    return jsonify(yields) 

@@ -8,6 +8,10 @@ let gdpChart = null;
 let stablecoinsDistributionChart = null;
 let testChart = null;
 
+// Global variables to track sorting state
+let protocolSortConfig = { column: 'tvl', direction: 'desc' };
+let yieldSortConfig = { column: 'apy', direction: 'desc' };
+
 function initializeChart() {
     const ctx = document.getElementById('gdp-chart').getContext('2d');
     const showTimeline = CONFIG.enableTimeline;
@@ -99,6 +103,11 @@ function updateGDP() {
             // Update main GDP value
             document.getElementById('gdp-value').textContent = formatNumber(data.gdp);
             
+            // Update GDP 24h change
+            const gdpChange = data.change_24h;
+            document.getElementById('gdp-change').innerHTML = 
+                `24h Change: ${formatPercentage(gdpChange)}`;
+            
             // Update components
             const components = data.components;
             Object.entries(components).forEach(([key, value]) => {
@@ -118,63 +127,15 @@ function updateGDP() {
                 `24h Change: ${formatPercentage(metadata.tvl_24h_change)}`;
             document.getElementById('revenue-change').innerHTML = 
                 `24h Change: ${formatPercentage(metadata.fees_24h_change)}`;
+            document.getElementById('stablecoins-change').innerHTML = 
+                `24h Change: ${formatPercentage(metadata.stablecoins_24h_change)}`;
             
             // Update chart
             updateChart(data.gdp);
             
             // Update pie chart
             if (gdpPieChart) {
-                // Create array of objects with labels and values
-                const components = [
-                    { label: 'Monetary Base', value: data.components.monetary_base },
-                    { label: 'DeFi TVL', value: data.components.tvl },
-                    { label: 'Protocol Revenue', value: data.components.fees },
-                    { label: 'Stablecoins', value: data.components.stablecoins },
-                    { label: 'Protocol Market Caps', value: data.components.protocols },
-                    { label: 'Cultural Capital', value: data.components.cultural || 0 }
-                ];
-                
-                // Sort components by value in descending order
-                components.sort((a, b) => b.value - a.value);
-                
-                // Update chart data
-                gdpPieChart.data.labels = components.map(c => c.label);
-                gdpPieChart.data.datasets[0].data = components.map(c => c.value);
-                
-                // Reorder colors to match sorted data
-                const colorMap = {
-                    'Monetary Base': '#627EEA',
-                    'DeFi TVL': '#FF007A',
-                    'Protocol Revenue': '#2172E5',
-                    'Stablecoins': '#00ED76',
-                    'Protocol Market Caps': '#8C8C8C',
-                    'Cultural Capital': '#FFB23F'
-                };
-                gdpPieChart.data.datasets[0].backgroundColor = components.map(c => colorMap[c.label]);
-                
-                gdpPieChart.update();
-            }
-
-            // Update stablecoins distribution chart
-            if (stablecoinsDistributionChart && data.metadata.stablecoins_distribution) {
-                console.log('Updating stablecoins distribution with:', data.metadata.stablecoins_distribution);
-                const dist = data.metadata.stablecoins_distribution;
-                stablecoinsDistributionChart.data.datasets[0].data = [
-                    dist.USDT,
-                    dist.USDC,
-                    dist.DAI,
-                    dist.Others
-                ];
-                stablecoinsDistributionChart.update();
-                if (document.getElementById('stablecoins-debug')) {
-                    document.getElementById('stablecoins-debug').textContent = 
-                        `Updated with: USDT=${formatNumber(dist.USDT)}, USDC=${formatNumber(dist.USDC)}, DAI=${formatNumber(dist.DAI)}, Others=${formatNumber(dist.Others)}`;
-                }
-            } else {
-                console.log('Could not update stablecoins distribution:', {
-                    chartExists: !!stablecoinsDistributionChart,
-                    distributionData: data.metadata.stablecoins_distribution
-                });
+                updateGDPPieChart(data.components);
             }
         })
         .catch(error => {
@@ -408,6 +369,273 @@ function initializeTestChart() {
     }
 }
 
+function sortData(data, column, direction) {
+    return [...data].sort((a, b) => {
+        let aValue = column === 'tvl' ? a[column] : 
+                     column === 'change_1d' ? parseFloat(a[column]) :
+                     column === 'apy' ? parseFloat(a[column]) : 
+                     a[column].toString().toLowerCase();
+        let bValue = column === 'tvl' ? b[column] : 
+                     column === 'change_1d' ? parseFloat(b[column]) :
+                     column === 'apy' ? parseFloat(b[column]) : 
+                     b[column].toString().toLowerCase();
+        
+        if (direction === 'asc') {
+            return aValue > bValue ? 1 : -1;
+        }
+        return aValue < bValue ? 1 : -1;
+    });
+}
+
+function loadProtocolsData() {
+    fetch('/api/protocols')
+        .then(response => response.json())
+        .then(data => {
+            const sortedData = sortData(data, protocolSortConfig.column, protocolSortConfig.direction);
+            const table = document.getElementById('topProtocolsTable');
+            let html = `
+                <table class="min-w-full divide-y divide-gray-700">
+                    <thead>
+                        <tr class="text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                            <th class="px-6 py-3 cursor-pointer hover:bg-gray-700/50" onclick="updateProtocolSort('name')">
+                                Protocol ${protocolSortConfig.column === 'name' ? (protocolSortConfig.direction === 'asc' ? '↑' : '↓') : ''}
+                            </th>
+                            <th class="px-6 py-3 cursor-pointer hover:bg-gray-700/50" onclick="updateProtocolSort('category')">
+                                Category ${protocolSortConfig.column === 'category' ? (protocolSortConfig.direction === 'asc' ? '↑' : '↓') : ''}
+                            </th>
+                            <th class="px-6 py-3 text-right cursor-pointer hover:bg-gray-700/50" onclick="updateProtocolSort('tvl')">
+                                TVL ${protocolSortConfig.column === 'tvl' ? (protocolSortConfig.direction === 'asc' ? '↑' : '↓') : ''}
+                            </th>
+                            <th class="px-6 py-3 cursor-pointer hover:bg-gray-700/50" onclick="updateProtocolSort('change_1d')">
+                                24h Change ${protocolSortConfig.column === 'change_1d' ? (protocolSortConfig.direction === 'asc' ? '↑' : '↓') : ''}
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-700 text-gray-300">
+            `;
+            
+            sortedData.forEach(protocol => {
+                html += `
+                    <tr class="hover:bg-gray-700/50">
+                        <td class="px-6 py-4">${protocol.name}</td>
+                        <td class="px-6 py-4">${protocol.category}</td>
+                        <td class="px-6 py-4 text-right">${formatNumber(protocol.tvl)}</td>
+                        <td class="px-6 py-4 whitespace-nowrap ${protocol.change_1d >= 0 ? 'text-green-400' : 'text-red-400'}">
+                            ${protocol.change_1d.toFixed(2)}%
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table>';
+            table.innerHTML = html;
+        });
+}
+
+function loadCategoryData() {
+    fetch('/api/categories')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Raw category data:', data);
+            
+            if (!data || Object.keys(data).length === 0) {
+                throw new Error('No category data received');
+            }
+
+            // Sort categories by TVL
+            const sortedEntries = Object.entries(data).sort((a, b) => b[1] - a[1]);
+            const labels = sortedEntries.map(([category]) => category);
+            const values = sortedEntries.map(([, value]) => value);
+
+            const chartData = {
+                labels: labels,
+                datasets: [{
+                    data: values,
+                    borderWidth: 2,
+                    borderColor: '#1a1f2d',
+                    hoverBorderWidth: 0,
+                    hoverOffset: 20,
+                    backgroundColor: [
+                        'rgba(98, 126, 234, 0.9)',    // Ethereum Blue
+                        'rgba(255, 0, 122, 0.9)',     // Uniswap Pink
+                        'rgba(33, 114, 229, 0.9)',    // Aave Blue
+                        'rgba(0, 237, 118, 0.9)',     // Green
+                        'rgba(255, 178, 63, 0.9)',    // Orange
+                        'rgba(140, 140, 140, 0.9)',   // Gray
+                        ...generateColors(Math.max(0, labels.length - 6))
+                    ],
+                    hoverBackgroundColor: [
+                        'rgba(98, 126, 234, 1)',
+                        'rgba(255, 0, 122, 1)',
+                        'rgba(33, 114, 229, 1)',
+                        'rgba(0, 237, 118, 1)',
+                        'rgba(255, 178, 63, 1)',
+                        'rgba(140, 140, 140, 1)',
+                        ...generateColors(Math.max(0, labels.length - 6)).map(color => color.replace('0.9', '1'))
+                    ]
+                }]
+            };
+
+            const ctx = document.getElementById('categoryChart');
+            if (!ctx) {
+                throw new Error('Canvas element not found');
+            }
+
+            // Clear the container and create a new canvas
+            const container = ctx.parentElement;
+            container.innerHTML = '';
+            const newCanvas = document.createElement('canvas');
+            newCanvas.id = 'categoryChart';
+            container.appendChild(newCanvas);
+
+            new Chart(newCanvas, {
+                type: 'pie',
+                data: chartData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '5%',
+                    animation: {
+                        animateScale: true,
+                        animateRotate: true,
+                        duration: 2000,
+                    },
+                    hover: {
+                        mode: 'nearest',
+                        intersect: true,
+                        animationDuration: 200
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                font: {
+                                    family: 'Inter',
+                                    size: 12,
+                                    weight: '500'
+                                },
+                                usePointStyle: true,
+                                pointStyle: 'circle',
+                                boxWidth: 10,
+                                padding: 25
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(17, 25, 40, 0.95)',
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            padding: 12,
+                            cornerRadius: 8,
+                            displayColors: true,
+                            usePointStyle: true,
+                            borderColor: 'rgba(255, 255, 255, 0.1)',
+                            borderWidth: 1,
+                            callbacks: {
+                                title: function(tooltipItems) {
+                                    return tooltipItems[0].label;
+                                },
+                                label: function(context) {
+                                    const value = context.raw;
+                                    const total = context.dataset.data.reduce((sum, val) => sum + val, 0);
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    return [
+                                        `TVL: ${formatNumber(value)}`,
+                                        `Share: ${percentage}%`
+                                    ];
+                                }
+                            }
+                        },
+                        datalabels: {
+                            color: '#fff',
+                            textAlign: 'center',
+                            font: {
+                                family: 'Inter',
+                                weight: 'bold'
+                            },
+                            formatter: function(value, context) {
+                                const total = context.dataset.data.reduce((sum, val) => sum + val, 0);
+                                const percentage = ((value / total) * 100).toFixed(1);
+                                return percentage + '%';
+                            },
+                            display: function(context) {
+                                return context.dataset.data[context.dataIndex] / 
+                                    context.dataset.data.reduce((a, b) => a + b) > 0.05;
+                            }
+                        }
+                    }
+                }
+            });
+        })
+        .catch(error => {
+            console.error('Error loading category data:', error.message);
+            const container = document.getElementById('categoryChart').parentElement;
+            container.innerHTML = `
+                <div class="flex flex-col items-center justify-center h-full">
+                    <p class="text-center text-gray-400">Failed to load category data</p>
+                    <p class="text-center text-gray-500 text-sm mt-2">${error.message}</p>
+                </div>
+            `;
+        });
+}
+
+function loadYieldsData() {
+    fetch('/api/yields')
+        .then(response => response.json())
+        .then(data => {
+            const sortedData = sortData(data, yieldSortConfig.column, yieldSortConfig.direction);
+            const table = document.getElementById('yieldsTable');
+            let html = `
+                <table class="min-w-full divide-y divide-gray-700">
+                    <thead>
+                        <tr class="text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                            <th class="px-6 py-3 cursor-pointer hover:bg-gray-700/50" onclick="updateYieldSort('pool')">
+                                Pool ${yieldSortConfig.column === 'pool' ? (yieldSortConfig.direction === 'asc' ? '↑' : '↓') : ''}
+                            </th>
+                            <th class="px-6 py-3 cursor-pointer hover:bg-gray-700/50" onclick="updateYieldSort('protocol')">
+                                Protocol ${yieldSortConfig.column === 'protocol' ? (yieldSortConfig.direction === 'asc' ? '↑' : '↓') : ''}
+                            </th>
+                            <th class="px-6 py-3 cursor-pointer hover:bg-gray-700/50" onclick="updateYieldSort('apy')">
+                                APY ${yieldSortConfig.column === 'apy' ? (yieldSortConfig.direction === 'asc' ? '↑' : '↓') : ''}
+                            </th>
+                            <th class="px-6 py-3 cursor-pointer hover:bg-gray-700/50" onclick="updateYieldSort('tvl')">
+                                TVL ${yieldSortConfig.column === 'tvl' ? (yieldSortConfig.direction === 'asc' ? '↑' : '↓') : ''}
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-700 text-gray-300">
+            `;
+            
+            sortedData.forEach(pool => {
+                html += `
+                    <tr class="hover:bg-gray-700/50 transition-colors duration-150 cursor-pointer"
+                        onclick="window.open('https://defillama.com/yields?token=${pool.pool}', '_blank')">
+                        <td class="px-6 py-4 whitespace-nowrap">${pool.pool}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">${pool.protocol}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-green-400">${pool.apy.toFixed(2)}%</td>
+                        <td class="px-6 py-4 whitespace-nowrap">${formatNumber(pool.tvl)}</td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table>';
+            table.innerHTML = html;
+        });
+}
+
+// Helper function to generate colors for the pie chart
+function generateColors(count) {
+    const colors = [];
+    for (let i = 0; i < count; i++) {
+        colors.push(`hsl(${(i * 360) / count}, 70%, 50%)`);
+    }
+    return colors;
+}
+
 // Initialize chart and start updates
 document.addEventListener('DOMContentLoaded', () => {
     initializeChart();
@@ -419,6 +647,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     updateGDP();
     setInterval(updateGDP, 300000); // Update every 5 minutes
+    
+    // Wait a brief moment to ensure DOM is fully ready
+    setTimeout(() => {
+        loadProtocolsData();
+        loadCategoryData();
+        loadYieldsData();
+        
+        // Refresh data every 5 minutes
+        setInterval(() => {
+            loadProtocolsData();
+            loadCategoryData();
+            loadYieldsData();
+        }, 300000);
+    }, 100);
 });
 
 // Timeline-related code (commented out for now)
@@ -431,3 +673,44 @@ function fetchTimelineData(period) {
     // Timeline data fetching code here
 }
 */
+
+// Sorting update functions
+function updateProtocolSort(column) {
+    if (protocolSortConfig.column === column) {
+        protocolSortConfig.direction = protocolSortConfig.direction === 'asc' ? 'desc' : 'asc';
+    } else {
+        protocolSortConfig.column = column;
+        protocolSortConfig.direction = 'desc';
+    }
+    loadProtocolsData();
+}
+
+function updateYieldSort(column) {
+    if (yieldSortConfig.column === column) {
+        yieldSortConfig.direction = yieldSortConfig.direction === 'asc' ? 'desc' : 'asc';
+    } else {
+        yieldSortConfig.column = column;
+        yieldSortConfig.direction = 'desc';
+    }
+    loadYieldsData();
+}
+
+function updateGDPPieChart(components) {
+    const labels = [
+        'Monetary Base',
+        'DeFi TVL',
+        'Protocol Revenue',
+        'Stablecoins',
+        'Protocol Market Caps'
+    ];
+    const values = [
+        components.monetary_base,
+        components.tvl,
+        components.fees,
+        components.stablecoins,
+        components.protocols
+    ];
+    
+    gdpPieChart.data.datasets[0].data = values;
+    gdpPieChart.update();
+}
